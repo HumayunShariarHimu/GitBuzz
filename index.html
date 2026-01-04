@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitBuzz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --neon-blue: #00f2ff; }
+        body {
+            background-color: #000000;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--neon-blue);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .neon-border {
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+        .neon-text {
+            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px rgba(0, 242, 255, 0.5);
+        }
+        .hacker-input {
+            background: #000 !important;
+            border: 1px solid var(--neon-blue) !important;
+            color: var(--neon-blue) !important;
+        }
+        .btn-neon {
+            background: var(--neon-blue);
+            color: #000;
+            font-weight: 800;
+            box-shadow: 0 0 15px var(--neon-blue);
+            transition: all 0.3s ease;
+        }
+        .btn-neon:hover { transform: scale(1.02); box-shadow: 0 0 25px var(--neon-blue); }
+        .grid-box { border: 1px solid rgba(0, 242, 255, 0.2); padding: 8px; text-align: center; }
+        #capture-area { background: #000; padding: 15px; border-radius: 8px; }
+        
+        /* Custom scrollbar for small devices */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: var(--neon-blue); }
+    </style>
+</head>
+<body class="p-2 sm:p-4">
+
+    <div class="w-full max-w-lg md:max-w-2xl neon-border bg-black relative overflow-hidden flex flex-col">
+        
+        <header class="p-4 md:p-6 border-b-2 border-cyan-500 bg-cyan-500/10 text-center">
+            <i class="fab fa-github text-4xl md:text-5xl mb-2 neon-text"></i>
+            <h1 class="text-3xl md:text-4xl font-black italic neon-text">GitBuzz</h1>
+            <p class="text-[8px] md:text-[10px] tracking-[0.3em] uppercase opacity-70">Decode Your GitHub DNA</p>
+        </header>
+
+        <div class="p-4 md:p-8 space-y-6">
+            <div id="search-section" class="space-y-4">
+                <input type="text" id="username" placeholder="Github Username.." 
+                    class="hacker-input w-full py-3 px-4 rounded-none outline-none text-center text-sm md:text-base">
+                <button onclick="runDeepScan()" class="btn-neon w-full py-3 uppercase tracking-widest text-sm md:text-base">Scan</button>
+            </div>
+
+            <div id="loader" class="hidden text-center animate-pulse py-8 neon-text text-xs md:text-sm">[ ANALYZING DATA... ]</div>
+
+            <div id="result-display" class="hidden space-y-6">
+                <div id="capture-area" class="border border-cyan-500/40">
+                    <div class="flex flex-col items-center mb-6">
+                        <img id="u-avatar" src="" class="w-20 h-20 md:w-28 md:h-28 rounded border-2 border-cyan-500 p-1 mb-3 object-cover">
+                        <h2 id="u-full-name" class="text-xl md:text-2xl font-bold neon-text uppercase text-center break-all"></h2>
+                        <p id="u-location" class="text-[8px] md:text-[10px] opacity-80"></p>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 md:gap-4">
+                        <div class="grid-box"><span class="block text-[7px] uppercase opacity-60">Repos</span><p id="u-repos" class="text-lg md:text-xl font-bold">0</p></div>
+                        <div class="grid-box"><span class="block text-[7px] uppercase opacity-60">Stars</span><p id="u-stars" class="text-lg md:text-xl font-bold">0</p></div>
+                        <div class="grid-box"><span class="block text-[7px] uppercase opacity-60">Forks</span><p id="u-forks" class="text-lg md:text-xl font-bold">0</p></div>
+                        <div class="grid-box"><span class="block text-[7px] uppercase opacity-60">Followers</span><p id="u-followers" class="text-lg md:text-xl font-bold">0</p></div>
+                        <div class="grid-box"><span class="block text-[7px] uppercase opacity-60">Gists</span><p id="u-gists" class="text-lg md:text-xl font-bold">0</p></div>
+                        <div class="grid-box border-dashed border-cyan-400 bg-cyan-500/5"><span class="block text-[7px] uppercase font-bold">Rank</span><p id="u-rank" class="text-lg md:text-xl font-bold neon-text">B</p></div>
+                    </div>
+
+                    <div class="mt-4 p-3 border border-cyan-500/20 text-[8px] md:text-[10px] space-y-1 overflow-hidden">
+                        <p class="truncate">> Joined: <span id="u-created" class="text-white"></span></p>
+                        <p class="break-words">> Bio: <span id="u-bio" class="text-white"></span></p>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-cyan-500 text-center">
+                        <p class="text-[10px] uppercase tracking-widest mb-1">Combat Rating</p>
+                        <div id="u-score" class="text-5xl md:text-7xl font-black neon-text italic">0</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <button onclick="downloadReport()" class="btn-neon flex-1 py-3 text-xs md:text-sm">
+                        <i class="fas fa-camera mr-2"></i> DOWNLOAD INTEL
+                    </button>
+                    <button onclick="location.reload()" class="border border-cyan-500 text-cyan-500 flex-1 py-3 text-xs md:text-sm font-bold uppercase hover:bg-cyan-500/10">
+                        NEW SCAN
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="p-4 border-t border-cyan-900 bg-black/80 text-center text-[8px] md:text-[10px] tracking-widest">
+            GitBuzz © <span class="text-white font-bold"><a href="https://github.com/HumayunShariarHimu">Humayun Shahriar Himu</a>
+
+
+</span>
+        </footer>
+    </div>
+
+    <script>
+        async function runDeepScan() {
+            const user = document.getElementById('username').value;
+            if(!user) return;
+
+            document.getElementById('search-section').classList.add('hidden');
+            document.getElementById('loader').classList.remove('hidden');
+
+            try {
+                const uRes = await fetch(`https://api.github.com/users/${user}`);
+                const uData = await uRes.json();
+                if(uData.message === "Not Found") { alert("Target not found!"); location.reload(); return; }
+
+                const rRes = await fetch(`https://api.github.com/users/${user}/repos?per_page=100`);
+                const rData = await rRes.json();
+
+                let stars = 0, forks = 0;
+                rData.forEach(r => { stars += r.stargazers_count; forks += r.forks_count; });
+
+                const totalScore = (uData.public_repos * 15) + (stars * 50) + (uData.followers * 30) + (forks * 20);
+
+                let rank = "C-CLASS";
+                if(totalScore > 5000) rank = "S-CLASS";
+                else if(totalScore > 1500) rank = "A-CLASS";
+                else if(totalScore > 400) rank = "B-CLASS";
+
+                document.getElementById('u-avatar').src = uData.avatar_url;
+                document.getElementById('u-full-name').innerText = uData.name || uData.login;
+                document.getElementById('u-location').innerText = `LOC: ${uData.location || "UNKNOWN"}`;
+                document.getElementById('u-repos').innerText = uData.public_repos;
+                document.getElementById('u-stars').innerText = stars;
+                document.getElementById('u-forks').innerText = forks;
+                document.getElementById('u-followers').innerText = uData.followers;
+                document.getElementById('u-gists').innerText = uData.public_gists;
+                document.getElementById('u-rank').innerText = rank;
+                document.getElementById('u-created').innerText = new Date(uData.created_at).toDateString();
+                document.getElementById('u-bio').innerText = uData.bio || 'NO BIO DETECTED';
+                
+                animatePower(totalScore);
+
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('result-display').classList.remove('hidden');
+            } catch (err) {
+                alert("Scan failed. Try again.");
+                location.reload();
+            }
+        }
+
+        function animatePower(target) {
+            let current = 0;
+            const el = document.getElementById('u-score');
+            const step = Math.ceil(target / 50);
+            const timer = setInterval(() => {
+                current += step;
+                if(current >= target) { el.innerText = target.toLocaleString(); clearInterval(timer); }
+                else { el.innerText = current.toLocaleString(); }
+            }, 30);
+        }
+
+        function downloadReport() {
+            const node = document.getElementById('capture-area');
+            html2canvas(node, { backgroundColor: '#000000', scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `GitBuzz_Intel.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>
